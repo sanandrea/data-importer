@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## v2.0.5 - 2026-01-17
 
+> [!WARNING]
+> This will be one of the last Firefly III data importer releases that supports PHP 8.4. 
+
 ### Fixed
 - #11504
 - #11521
