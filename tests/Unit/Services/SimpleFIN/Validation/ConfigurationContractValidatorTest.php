@@ -24,14 +24,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\SimpleFIN\Validation;
 
-use Carbon\Carbon;
 use App\Services\Shared\Configuration\Configuration;
 use App\Services\SimpleFIN\Validation\ConfigurationContractValidator;
 use App\Services\SimpleFIN\Validation\ValidationResult;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Session;
-use Tests\TestCase;
 use Override;
+use Tests\TestCase;
 
 /**
  * Class ConfigurationContractValidatorTest
@@ -73,8 +73,8 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $result = $this->validator->validateConfigurationContract($this->mockConfiguration);
 
-        static::assertTrue($result->isValid());
-        static::assertEmpty($result->getErrors());
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
     }
 
     /**
@@ -86,9 +86,9 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $result        = $this->validator->validateConfigurationContract($invalidConfig);
 
-        static::assertFalse($result->isValid());
-        static::assertNotEmpty($result->getErrors());
-        static::assertStringContainsString('SimpleFIN flow', (string) $result->getErrorMessages()[0]);
+        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($result->getErrors());
+        $this->assertStringContainsString('SimpleFIN flow', (string) $result->getErrorMessages()[0]);
     }
 
     /**
@@ -100,8 +100,8 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $result = $this->validator->validateConfigurationContract($this->mockConfiguration);
 
-        static::assertFalse($result->isValid());
-        static::assertStringContainsString('SimpleFIN accounts data missing', (string) $result->getErrorMessages()[0]);
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsString('SimpleFIN accounts data missing', (string) $result->getErrorMessages()[0]);
     }
 
     /**
@@ -109,18 +109,16 @@ final class ConfigurationContractValidatorTest extends TestCase
      */
     public function testValidateConfigurationContractInvalidAccountStructure(): void
     {
-        Session::put('simplefin_accounts_data', [
-            [
-                'id'   => 'acc1',
-                'name' => 'Test Account',
-                // Missing required fields: currency, balance, balance-date, org
-            ],
-        ]);
+        Session::put('simplefin_accounts_data', [[
+            'id'   => 'acc1',
+            'name' => 'Test Account',
+            // Missing required fields: currency, balance, balance-date, org
+        ]]);
 
         $result = $this->validator->validateConfigurationContract($this->mockConfiguration);
 
-        static::assertFalse($result->isValid());
-        static::assertGreaterThanOrEqual(4, count($result->getErrors())); // Missing 4 required fields
+        $this->assertFalse($result->isValid());
+        $this->assertGreaterThanOrEqual(4, count($result->getErrors())); // Missing 4 required fields
     }
 
     /**
@@ -134,13 +132,13 @@ final class ConfigurationContractValidatorTest extends TestCase
         $config = $this->createMockConfiguration();
         $config->setAccounts([
             'acc1' => -1, // Invalid negative ID
-            ''     => 0,     // Invalid empty account ID
+            ''     => 0, // Invalid empty account ID
         ]);
 
         $result = $this->validator->validateConfigurationContract($config);
 
-        static::assertFalse($result->isValid());
-        static::assertNotEmpty($result->getErrors());
+        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($result->getErrors());
     }
 
     /**
@@ -157,8 +155,8 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $result = $this->validator->validateConfigurationContract($config);
 
-        static::assertFalse($result->isValid());
-        static::assertStringContainsString('New account configuration missing', (string) $result->getErrorMessages()[0]);
+        $this->assertFalse($result->isValid());
+        $this->assertStringContainsString('New account configuration missing', (string) $result->getErrorMessages()[0]);
     }
 
     /**
@@ -170,19 +168,17 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $config = $this->createMockConfiguration();
         $config->setAccounts(['acc1' => 0]);
-        $config->setNewAccounts([
-            'acc1' => [
-                'name'            => '',           // Empty name
-                'type'            => 'invalid',    // Invalid type
-                'currency'        => 'USDD',   // Invalid currency format
-                'opening_balance' => 'not_numeric', // Invalid balance
-            ],
-        ]);
+        $config->setNewAccounts(['acc1' => [
+            'name'            => '', // Empty name
+            'type'            => 'invalid', // Invalid type
+            'currency'        => 'USDD', // Invalid currency format
+            'opening_balance' => 'not_numeric', // Invalid balance
+        ]]);
 
         $result = $this->validator->validateConfigurationContract($config);
 
-        static::assertFalse($result->isValid());
-        static::assertGreaterThanOrEqual(4, count($result->getErrors()));
+        $this->assertFalse($result->isValid());
+        $this->assertGreaterThanOrEqual(4, count($result->getErrors()));
     }
 
     /**
@@ -194,22 +190,20 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $config = $this->createMockConfiguration();
         $config->setAccounts(['acc1' => 0]);
-        $config->setNewAccounts([
-            'acc1' => [
-                'name'            => 'Credit Card',
-                'type'            => 'liability',
-                'currency'        => 'USD',
-                'opening_balance' => '1000.00',
-                // Missing liability_type and liability_direction
-            ],
-        ]);
+        $config->setNewAccounts(['acc1' => [
+            'name'            => 'Credit Card',
+            'type'            => 'liability',
+            'currency'        => 'USD',
+            'opening_balance' => '1000.00',
+            // Missing liability_type and liability_direction
+        ]]);
 
         $result = $this->validator->validateConfigurationContract($config);
 
-        static::assertFalse($result->isValid());
+        $this->assertFalse($result->isValid());
         $errors = $result->getErrors();
-        static::assertTrue(collect($errors)->contains(static fn ($error) => str_contains((string) $error['message'], 'Liability type required')));
-        static::assertTrue(collect($errors)->contains(static fn ($error) => str_contains((string) $error['message'], 'Liability direction required')));
+        $this->assertTrue(collect($errors)->contains(static fn ($error) => str_contains((string) $error['message'], 'Liability type required')));
+        $this->assertTrue(collect($errors)->contains(static fn ($error) => str_contains((string) $error['message'], 'Liability direction required')));
     }
 
     /**
@@ -218,22 +212,20 @@ final class ConfigurationContractValidatorTest extends TestCase
     public function testValidateFormFieldStructureSuccess(): void
     {
         $validFormData = [
-            'do_import'   => ['acc1' => '1'],
-            'accounts'    => ['acc1' => 0],
-            'new_account' => [
-                'acc1' => [
-                    'name'            => 'Test Account',
-                    'type'            => 'asset',
-                    'currency'        => 'USD',
-                    'opening_balance' => '1000.00',
-                ],
-            ],
+            'do_import'   => ['acc1'   => '1'],
+            'accounts'    => ['acc1'    => 0],
+            'new_account' => ['acc1' => [
+                'name'            => 'Test Account',
+                'type'            => 'asset',
+                'currency'        => 'USD',
+                'opening_balance' => '1000.00',
+            ]],
         ];
 
         $result        = $this->validator->validateFormFieldStructure($validFormData);
 
-        static::assertTrue($result->isValid());
-        static::assertEmpty($result->getErrors());
+        $this->assertTrue($result->isValid());
+        $this->assertEmpty($result->getErrors());
     }
 
     /**
@@ -248,8 +240,8 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $result          = $this->validator->validateFormFieldStructure($invalidFormData);
 
-        static::assertFalse($result->isValid());
-        static::assertGreaterThanOrEqual(3, count($result->getErrors())); // Missing/invalid fields
+        $this->assertFalse($result->isValid());
+        $this->assertGreaterThanOrEqual(3, count($result->getErrors())); // Missing/invalid fields
     }
 
     /**
@@ -257,35 +249,31 @@ final class ConfigurationContractValidatorTest extends TestCase
      */
     public function testValidationResultClass(): void
     {
-        $errors        = [
-            ['field' => 'test', 'message' => 'Test error', 'value' => null],
-        ];
-        $warnings      = [
-            ['field' => 'test', 'message' => 'Test warning', 'value' => null],
-        ];
+        $errors        = [['field'   => 'test', 'message' => 'Test error', 'value'   => null]];
+        $warnings      = [['field'   => 'test', 'message' => 'Test warning', 'value'   => null]];
 
         // Test invalid result
         $invalidResult = new ValidationResult(false, $errors, $warnings);
-        static::assertFalse($invalidResult->isValid());
-        static::assertTrue($invalidResult->hasErrors());
-        static::assertTrue($invalidResult->hasWarnings());
-        static::assertSame(['Test error'], $invalidResult->getErrorMessages());
-        static::assertSame(['Test warning'], $invalidResult->getWarningMessages());
+        $this->assertFalse($invalidResult->isValid());
+        $this->assertTrue($invalidResult->hasErrors());
+        $this->assertTrue($invalidResult->hasWarnings());
+        $this->assertSame(['Test error'], $invalidResult->getErrorMessages());
+        $this->assertSame(['Test warning'], $invalidResult->getWarningMessages());
 
         // Test valid result
         $validResult   = new ValidationResult(true);
-        static::assertTrue($validResult->isValid());
-        static::assertFalse($validResult->hasErrors());
-        static::assertFalse($validResult->hasWarnings());
-        static::assertEmpty($validResult->getErrors());
-        static::assertEmpty($validResult->getWarnings());
+        $this->assertTrue($validResult->isValid());
+        $this->assertFalse($validResult->hasErrors());
+        $this->assertFalse($validResult->hasWarnings());
+        $this->assertEmpty($validResult->getErrors());
+        $this->assertEmpty($validResult->getWarnings());
 
         // Test toArray
         $array         = $invalidResult->toArray();
-        static::assertArrayHasKey('valid', $array);
-        static::assertArrayHasKey('errors', $array);
-        static::assertArrayHasKey('warnings', $array);
-        static::assertFalse($array['valid']);
+        $this->assertArrayHasKey('valid', $array);
+        $this->assertArrayHasKey('errors', $array);
+        $this->assertArrayHasKey('warnings', $array);
+        $this->assertFalse($array['valid']);
     }
 
     /**
@@ -297,20 +285,18 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $config = $this->createMockConfiguration();
         $config->setAccounts(['acc1' => 0]);
-        $config->setNewAccounts([
-            'acc1' => [
-                'name'            => 'Savings Account',
-                'type'            => 'asset',
-                'currency'        => 'USD',
-                'opening_balance' => '1000.00',
-                'account_role'    => 'invalidRole', // Invalid role
-            ],
-        ]);
+        $config->setNewAccounts(['acc1' => [
+            'name'            => 'Savings Account',
+            'type'            => 'asset',
+            'currency'        => 'USD',
+            'opening_balance' => '1000.00',
+            'account_role'    => 'invalidRole', // Invalid role
+        ]]);
 
         $result = $this->validator->validateConfigurationContract($config);
 
-        static::assertFalse($result->isValid());
-        static::assertTrue(collect($result->getErrors())->contains(static fn ($error) => str_contains((string) $error['message'], 'Invalid account role')));
+        $this->assertFalse($result->isValid());
+        $this->assertTrue(collect($result->getErrors())->contains(static fn ($error) => str_contains((string) $error['message'], 'Invalid account role')));
     }
 
     /**
@@ -323,8 +309,11 @@ final class ConfigurationContractValidatorTest extends TestCase
 
         $result = $this->validator->validateConfigurationContract($this->mockConfiguration);
 
-        static::assertFalse($result->isValid());
-        static::assertTrue(collect($result->getErrors())->contains(static fn ($error) => str_contains((string) $error['message'], 'selected for import but not in account mappings')));
+        $this->assertFalse($result->isValid());
+        $this->assertTrue(
+            collect($result->getErrors())
+                ->contains(static fn ($error) => str_contains((string) $error['message'], 'selected for import but not in account mappings'))
+        );
     }
 
     /**
@@ -335,15 +324,13 @@ final class ConfigurationContractValidatorTest extends TestCase
         return Configuration::fromArray([
             'flow'        => $flow,
             'accounts'    => ['acc1' => 1, 'acc2' => 0],
-            'new_account' => [
-                'acc2' => [
-                    'name'            => 'New Account',
-                    'type'            => 'asset',
-                    'currency'        => 'USD',
-                    'opening_balance' => '1000.00',
-                    'account_role'    => 'defaultAsset',
-                ],
-            ],
+            'new_account' => ['acc2' => [
+                'name'            => 'New Account',
+                'type'            => 'asset',
+                'currency'        => 'USD',
+                'opening_balance' => '1000.00',
+                'account_role'    => 'defaultAsset',
+            ]],
         ]);
     }
 
@@ -359,7 +346,7 @@ final class ConfigurationContractValidatorTest extends TestCase
                 'currency'     => 'USD',
                 'balance'      => '1000.00',
                 'balance-date' => Carbon::now()->getTimestamp(),
-                'org'          => ['name' => 'Test Bank'],
+                'org'          => ['name'          => 'Test Bank'],
                 'extra'        => [],
             ],
             [
@@ -368,14 +355,11 @@ final class ConfigurationContractValidatorTest extends TestCase
                 'currency'     => 'USD',
                 'balance'      => '2000.00',
                 'balance-date' => Carbon::now()->getTimestamp(),
-                'org'          => ['name' => 'Test Bank'],
+                'org'          => ['name'          => 'Test Bank'],
                 'extra'        => [],
             ],
         ]);
 
-        Session::put('do_import', [
-            'acc1' => '1',
-            'acc2' => '1',
-        ]);
+        Session::put('do_import', ['acc1' => '1', 'acc2' => '1']);
     }
 }

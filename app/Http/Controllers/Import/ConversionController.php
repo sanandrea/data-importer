@@ -127,15 +127,12 @@ class ConversionController extends Controller
                 foreach ($newAccountData as $accountId => $accountDetails) {
                     if (array_key_exists($accountId, $existingNewAccounts) && null !== $existingNewAccounts[$accountId]) {
                         // Merge the detailed data with existing data
-                        $existingNewAccounts[$accountId] = array_merge(
-                            $existingNewAccounts[$accountId],
-                            [
-                                'name'            => $accountDetails['name'],
-                                'type'            => $accountDetails['type'],
-                                'currency'        => $accountDetails['currency'],
-                                'opening_balance' => $accountDetails['opening_balance'],
-                            ]
-                        );
+                        $existingNewAccounts[$accountId] = array_merge($existingNewAccounts[$accountId], [
+                            'name'            => $accountDetails['name'],
+                            'type'            => $accountDetails['type'],
+                            'currency'        => $accountDetails['currency'],
+                            'opening_balance' => $accountDetails['opening_balance'],
+                        ]);
                     }
                 }
                 $configuration->setNewAccounts($existingNewAccounts);
@@ -183,7 +180,6 @@ class ConversionController extends Controller
         Log::debug(sprintf('Conversion routine "%s" yielded %d transaction(s).', $flow, count($transactions)));
         $importJob->setConvertedTransactions($transactions);
         $this->repository->saveToDisk($importJob);
-
 
         if ('file' !== $flow) {
             // all other workflows go to mapping (if requested from configuration?)

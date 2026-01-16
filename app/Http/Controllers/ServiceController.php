@@ -51,11 +51,11 @@ class ServiceController extends Controller
     {
         return match ($provider) {
             'nordigen', 'gocardless' => $this->validateNordigen(),
-            'simplefin'              => $this->validateSimpleFIN(),
-            'spectre'                => $this->validateSpectre(request()),
-            'lunchflow'              => $this->validateLunchFlow(),
-            'file'                   => response()->json(['result' => 'OK']),
-            default                  => response()->json(['result' => 'NOK', 'message' => 'Unknown provider']),
+            'simplefin' => $this->validateSimpleFIN(),
+            'spectre'   => $this->validateSpectre(request()),
+            'lunchflow' => $this->validateLunchFlow(),
+            'file'      => response()->json(['result' => 'OK']),
+            default     => response()->json(['result'  => 'NOK', 'message' => 'Unknown provider'])
         };
     }
 

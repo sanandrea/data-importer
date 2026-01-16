@@ -43,9 +43,9 @@ class RoutineManager implements RoutineManagerInterface
 {
     private TransactionConverter $transactionConverter;
     private TransactionExtractor $transactionExtractor;
-    private TransactionMapper    $transactionMapper;
-    private ImportJob            $importJob;
-    private ImportJobRepository  $repository;
+    private TransactionMapper $transactionMapper;
+    private ImportJob $importJob;
+    private ImportJobRepository $repository;
 
     public function __construct(ImportJob $importJob)
     {

@@ -87,16 +87,16 @@ final class PseudoIdentifierTest extends TestCase
         $config    = Configuration::fromArray($oldConfig);
 
         // Should auto-migrate to pseudo identifier
-        static::assertTrue($config->hasPseudoIdentifier());
+        $this->assertTrue($config->hasPseudoIdentifier());
 
         $pseudo    = $config->getPseudoIdentifier();
-        static::assertNotNull($pseudo);
-        static::assertSame([2], $pseudo['source_columns']);
-        static::assertSame('|', $pseudo['separator']);
-        static::assertSame('external-id', $pseudo['role']);
+        $this->assertNotNull($pseudo);
+        $this->assertSame([2], $pseudo['source_columns']);
+        $this->assertSame('|', $pseudo['separator']);
+        $this->assertSame('external-id', $pseudo['role']);
 
         // Display value should show original index
-        static::assertSame('2', $config->getUniqueColumnIndexDisplay());
+        $this->assertSame('2', $config->getUniqueColumnIndexDisplay());
     }
 
     /**
@@ -108,41 +108,37 @@ final class PseudoIdentifierTest extends TestCase
     public function testMultiColumnIdentifierPreserved(): void
     {
         $newConfig = [
-            'version'                           => 3,
-            'duplicate_detection_method'        => 'cell',
-            'unique_column_index'               => 0,
-            'unique_column_type'                => 'external-id',
-            'pseudo_identifier'                 => [
-                'source_columns' => [0, 3, 5],
-                'separator'      => '|',
-                'role'           => 'external-id',
-            ],
-            'headers'                           => true,
-            'delimiter'                         => 'comma',
-            'date'                              => 'Y-m-d',
-            'default_account'                   => 1,
-            'rules'                             => true,
-            'ignore_duplicate_lines'            => true,
-            'ignore_duplicate_transactions'     => true,
-            'roles'                             => [],
-            'do_mapping'                        => [],
-            'mapping'                           => [],
-            'flow'                              => 'file',
-            'content_type'                      => 'csv',
+            'version'                       => 3,
+            'duplicate_detection_method'    => 'cell',
+            'unique_column_index'           => 0,
+            'unique_column_type'            => 'external-id',
+            'pseudo_identifier'             => ['source_columns' => [0, 3, 5], 'separator'      => '|', 'role'           => 'external-id'],
+            'headers'                       => true,
+            'delimiter'                     => 'comma',
+            'date'                          => 'Y-m-d',
+            'default_account'               => 1,
+            'rules'                         => true,
+            'ignore_duplicate_lines'        => true,
+            'ignore_duplicate_transactions' => true,
+            'roles'                         => [],
+            'do_mapping'                    => [],
+            'mapping'                       => [],
+            'flow'                          => 'file',
+            'content_type'                  => 'csv',
         ];
 
         $config    = Configuration::fromArray($newConfig);
 
-        static::assertTrue($config->hasPseudoIdentifier());
+        $this->assertTrue($config->hasPseudoIdentifier());
 
         $pseudo    = $config->getPseudoIdentifier();
-        static::assertNotNull($pseudo);
+        $this->assertNotNull($pseudo);
 
         // Multi-column configuration should be preserved
-        static::assertSame([0, 3, 5], $pseudo['source_columns']);
+        $this->assertSame([0, 3, 5], $pseudo['source_columns']);
 
         // Display value should show comma-separated indices
-        static::assertSame('0,3,5', $config->getUniqueColumnIndexDisplay());
+        $this->assertSame('0,3,5', $config->getUniqueColumnIndexDisplay());
     }
 
     /**
@@ -174,8 +170,8 @@ final class PseudoIdentifierTest extends TestCase
         $config        = Configuration::fromArray($classicConfig);
 
         // Should NOT create pseudo identifier for classic detection
-        static::assertFalse($config->hasPseudoIdentifier());
-        static::assertNull($config->getPseudoIdentifier());
+        $this->assertFalse($config->hasPseudoIdentifier());
+        $this->assertNull($config->getPseudoIdentifier());
     }
 
     /**
@@ -206,8 +202,8 @@ final class PseudoIdentifierTest extends TestCase
 
         $config     = Configuration::fromArray($noneConfig);
 
-        static::assertFalse($config->hasPseudoIdentifier());
-        static::assertNull($config->getPseudoIdentifier());
+        $this->assertFalse($config->hasPseudoIdentifier());
+        $this->assertNull($config->getPseudoIdentifier());
     }
 
     /**
@@ -219,14 +215,10 @@ final class PseudoIdentifierTest extends TestCase
     public function testPseudoIdentifierConfigurationRoundTrip(): void
     {
         $originalConfig = array_merge($this->getBaseConfiguration(), [
-            'duplicate_detection_method'        => 'cell',
-            'unique_column_index'               => 1,
-            'unique_column_type'                => 'internal_reference',
-            'pseudo_identifier'                 => [
-                'source_columns' => [1, 4],
-                'separator'      => '|',
-                'role'           => 'internal_reference',
-            ],
+            'duplicate_detection_method' => 'cell',
+            'unique_column_index'        => 1,
+            'unique_column_type'         => 'internal_reference',
+            'pseudo_identifier'          => ['source_columns' => [1, 4], 'separator'      => '|', 'role'           => 'internal_reference'],
         ]);
 
         // Load configuration
@@ -236,10 +228,10 @@ final class PseudoIdentifierTest extends TestCase
         $savedConfig    = $config->toArray();
 
         // Verify pseudo identifier is preserved in save
-        static::assertArrayHasKey('pseudo_identifier', $savedConfig);
+        $this->assertArrayHasKey('pseudo_identifier', $savedConfig);
 
         $pseudo         = $savedConfig['pseudo_identifier'];
-        static::assertSame([1, 4], $pseudo['source_columns']);
-        static::assertSame('|', $pseudo['separator']);
+        $this->assertSame([1, 4], $pseudo['source_columns']);
+        $this->assertSame('|', $pseudo['separator']);
     }
 }

@@ -39,7 +39,7 @@ class ImportServiceAccount
 {
     public string $bban;
     public string $currencyCode;
-    public array  $extra;
+    public array $extra;
     public string $iban;
     public string $id;
     public string $name;
@@ -49,28 +49,26 @@ class ImportServiceAccount
     {
         // probably simpleFIN.
         if (is_array($account)) {
-            $timestamp  = (int)$account['balance-date'] ?? 0;
+            $timestamp  = (int) $account['balance-date'] ?? 0;
             $dateString = '';
             if ($timestamp > 100) {
                 $carbon     = Carbon::createFromTimestamp($timestamp);
                 $dateString = $carbon->format('Y-m-d H:i:s');
             }
 
-            return self::fromArray(
-                [
-                    'id'            => $account['id'], // Expected by component for form elements, and by getMappedTo (as 'identifier')
-                    'name'          => $account['name'], // Expected by getMappedTo, display in component
-                    'currency_code' => $account['currency'] ?? null, // SimpleFIN currency field
-                    'iban'          => null,
-                    'bban'          => '',
-                    'status'        => 'active', // Expected by view for status checks
-                    'extra'         => [
-                        'Balance'      => $account['balance'] ?? null, // SimpleFIN balance (numeric string)
-                        'Balance date' => $dateString, // SimpleFIN balance timestamp
-                        'Organization' => $account['org']['name'] ?? null, // SimpleFIN organization data
-                    ],
-                ]
-            );
+            return self::fromArray([
+                'id'            => $account['id'], // Expected by component for form elements, and by getMappedTo (as 'identifier')
+                'name'          => $account['name'], // Expected by getMappedTo, display in component
+                'currency_code' => $account['currency'] ?? null, // SimpleFIN currency field
+                'iban'          => null,
+                'bban'          => '',
+                'status'        => 'active', // Expected by view for status checks
+                'extra'         => [
+                    'Balance'      => $account['balance'] ?? null, // SimpleFIN balance (numeric string)
+                    'Balance date' => $dateString, // SimpleFIN balance timestamp
+                    'Organization' => $account['org']['name'] ?? null, // SimpleFIN organization data
+                ],
+            ]);
         }
         if ($account instanceof SimpleFinAccount) {
             $dateString = '';
@@ -79,56 +77,46 @@ class ImportServiceAccount
                 $dateString = $carbon->format('Y-m-d H:i:s');
             }
 
-            return self::fromArray(
-                [
-                    'id'            => (string)$account->id,
-                    'name'          => $account->name,
-                    'currency_code' => (string)$account->currency,
-                    'iban'          => '',
-                    'bban'          => '',
-                    'status'        => 'active',
-                    'extra'         => [
-                        'Balance'      => $account->balance,
-                        'Balance date' => $dateString, // SimpleFIN balance timestamp
-                        'Organization' => (string)$account->getOrganizationName(),
-                    ],
-                ]
-            );
+            return self::fromArray([
+                'id'            => (string) $account->id,
+                'name'          => $account->name,
+                'currency_code' => (string) $account->currency,
+                'iban'          => '',
+                'bban'          => '',
+                'status'        => 'active',
+                'extra'         => [
+                    'Balance'      => $account->balance,
+                    'Balance date' => $dateString, // SimpleFIN balance timestamp
+                    'Organization' => (string) $account->getOrganizationName(),
+                ],
+            ]);
         }
         if ($account instanceof LunchFlowAccount) {
-            return self::fromArray(
-                [
-                    'id'            => (string)$account->id,
-                    'name'          => $account->name,
-                    'currency_code' => (string)$account->currency,
-                    'iban'          => '',
-                    'bban'          => '',
-                    'status'        => $account->status,
-                    'extra'         => [
-                        'Currency' => (string)$account->currency,
-                        'IBAN'     => '',
-                        'BBAN'     => '',
-                    ],
-                ]
-            );
+            return self::fromArray([
+                'id'            => (string) $account->id,
+                'name'          => $account->name,
+                'currency_code' => (string) $account->currency,
+                'iban'          => '',
+                'bban'          => '',
+                'status'        => $account->status,
+                'extra'         => ['Currency' => (string) $account->currency, 'IBAN'     => '', 'BBAN'     => ''],
+            ]);
         }
         if ($account instanceof NordigenAccount) {
-            return self::fromArray(
-                [
-                    'id'            => $account->getIdentifier(),
-                    'name'          => $account->getName(),
-                    'currency_code' => $account->getCurrency(),
-                    'iban'          => $account->getIban(),
-                    'bban'          => $account->getBban(),
-                    'status'        => $account->getStatus(),
-                    'extra'         => [
-                        'Currency' => $account->getCurrency(),
-                        'IBAN'     => $account->getIban(),
-                        'BBAN'     => $account->getBban(),
-                        'BIC'      => $account->getBic(),
-                    ],
-                ]
-            );
+            return self::fromArray([
+                'id'            => $account->getIdentifier(),
+                'name'          => $account->getName(),
+                'currency_code' => $account->getCurrency(),
+                'iban'          => $account->getIban(),
+                'bban'          => $account->getBban(),
+                'status'        => $account->getStatus(),
+                'extra'         => [
+                    'Currency' => $account->getCurrency(),
+                    'IBAN'     => $account->getIban(),
+                    'BBAN'     => $account->getBban(),
+                    'BIC'      => $account->getBic(),
+                ],
+            ]);
         }
         if ($account instanceof SophtronAccount) {
             $iban = $account->accountNumber;
@@ -137,24 +125,22 @@ class ImportServiceAccount
                 $iban = '';
             }
 
-            return self::fromArray(
-                [
-                    'id'            => $account->id,
-                    'name'          => $account->accountName,
-                    'currency_code' => $account->balanceCurrency,
-                    'iban'          => $iban,
-                    'bban'          => $account->accountNumber,
-                    'status'        => $account->status,
-                    'extra'         => [
-                        'Bank name'         => $account->userInstitution?->companyName,
-                        'Balance'           => $account->balance,
-                        'Available balance' => $account->availableBalance,
-                        'Currency'          => $account->balanceCurrency,
-                        'IBAN'              => $iban,
-                        'BBAN'              => $account->accountNumber,
-                    ],
-                ]
-            );
+            return self::fromArray([
+                'id'            => $account->id,
+                'name'          => $account->accountName,
+                'currency_code' => $account->balanceCurrency,
+                'iban'          => $iban,
+                'bban'          => $account->accountNumber,
+                'status'        => $account->status,
+                'extra'         => [
+                    'Bank name'         => $account->userInstitution?->companyName,
+                    'Balance'           => $account->balance,
+                    'Available balance' => $account->availableBalance,
+                    'Currency'          => $account->balanceCurrency,
+                    'IBAN'              => $iban,
+                    'BBAN'              => $account->accountNumber,
+                ],
+            ]);
         }
 
         throw new ImporterErrorException(sprintf('Cannot convert object of class %s to ImportServiceAccount in ImportServiceAccount class .', $account::class));
@@ -176,24 +162,22 @@ class ImportServiceAccount
                 $iban = '';
             }
 
-            $current  = self::fromArray(
-                [
-                    'id'            => $account->getIdentifier(),
-                    'name'          => $account->getFullName(),
-                    'currency_code' => $account->getCurrency(),
-                    'iban'          => $iban,
-                    'bban'          => $account->getBban(),
-                    'status'        => '',
-                    'extra'         => [
-                        'Name'         => $account->getName(),
-                        'Display name' => $account->getDisplayName(),
-                        'Owner name'   => $account->getOwnerName(),
-                        'Currency'     => $account->getCurrency(),
-                        'IBAN'         => $iban,
-                        'BBAN'         => $account->getBban(),
-                    ],
-                ]
-            );
+            $current  = self::fromArray([
+                'id'            => $account->getIdentifier(),
+                'name'          => $account->getFullName(),
+                'currency_code' => $account->getCurrency(),
+                'iban'          => $iban,
+                'bban'          => $account->getBban(),
+                'status'        => '',
+                'extra'         => [
+                    'Name'         => $account->getName(),
+                    'Display name' => $account->getDisplayName(),
+                    'Owner name'   => $account->getOwnerName(),
+                    'Currency'     => $account->getCurrency(),
+                    'IBAN'         => $iban,
+                    'BBAN'         => $account->getBban(),
+                ],
+            ]);
 
             /** @var Balance $balance */
             foreach ($account->getBalances() as $balance) {
@@ -212,34 +196,32 @@ class ImportServiceAccount
 
         /** @var SimpleFinAccount $account */
         foreach ($accounts as $account) {
-
             $timestamp  = $account->getBalanceDate();
             $dateString = '';
             if ($timestamp > 100) {
                 $carbon     = Carbon::createFromTimestamp($timestamp);
                 $dateString = $carbon->format('Y-m-d H:i:s');
             }
-            $current    = self::fromArray(
-                [
-                    'id'            => $account->getId(), // Expected by component for form elements, and by getMappedTo (as 'identifier')
-                    'name'          => $account->getName(), // Expected by getMappedTo, display in component
-                    'currency_code' => $account->getCurrency(), // SimpleFIN currency field
-                    'iban'          => null,
-                    'bban'          => '',
-                    'status'        => 'active', // Expected by view for status checks
-                    'extra'         => [
-                        'Balance'      => $account->getBalance() ?? null, // SimpleFIN balance (numeric string)
-                        'Balance date' => $dateString, // SimpleFIN balance timestamp
-                        'Organization' => $account->getOrganizationName(), // SimpleFIN organization data
-                    ],
-                ]
-            );
+            $current    = self::fromArray([
+                'id'            => $account->getId(), // Expected by component for form elements, and by getMappedTo (as 'identifier')
+                'name'          => $account->getName(), // Expected by getMappedTo, display in component
+                'currency_code' => $account->getCurrency(), // SimpleFIN currency field
+                'iban'          => null,
+                'bban'          => '',
+                'status'        => 'active', // Expected by view for status checks
+                'extra'         => [
+                    'Balance'      => $account->getBalance() ?? null, // SimpleFIN balance (numeric string)
+                    'Balance date' => $dateString, // SimpleFIN balance timestamp
+                    'Organization' => $account->getOrganizationName(), // SimpleFIN organization data
+                ],
+            ]);
             foreach ($account->getExtra() as $key => $value) {
                 if (!array_key_exists($key, $current->extra)) {
                     $current->extra[$key] = $value;
                 }
             }
             $return[]   = $current;
+
             //            $return[] = ['import_account'       => $importAccountRepresentation, // The DTO-like object for the component
             //                         'mapped_to'            => $this->getMappedTo((object)['identifier' => $importAccountRepresentation->id, 'name' => $importAccountRepresentation->name], $fireflyAccounts), // getMappedTo needs 'identifier'
             //                         'type'                 => 'source', // Indicates it's an account from the import source
@@ -256,7 +238,7 @@ class ImportServiceAccount
     public static function fromArray(array $array): self
     {
         Log::debug('Create generic account from', $array);
-        $iban                  = (string)($array['iban'] ?? '');
+        $iban                  = (string) ($array['iban'] ?? '');
         if ('' !== $iban && false === IbanConverter::isValidIban($iban)) {
             Log::debug(sprintf('IBAN "%s" is invalid so it will be ignored.', $iban));
             $iban = '';
@@ -284,24 +266,22 @@ class ImportServiceAccount
                 Log::debug(sprintf('IBAN "%s" is invalid so it will be ignored.', $iban));
                 $iban = '';
             }
-            $return[] = self::fromArray(
-                [
-                    'id'            => $account->id,
-                    'name'          => $account->accountName,
-                    'currency_code' => $account->balanceCurrency,
-                    'iban'          => $iban,
-                    'bban'          => $account->accountNumber,
-                    'status'        => $account->status,
-                    'extra'         => [
-                        'Bank name'         => $account->userInstitution?->companyName,
-                        'Balance'           => $account->balance,
-                        'Available balance' => $account->availableBalance,
-                        'Currency'          => $account->balanceCurrency,
-                        'IBAN'              => $iban,
-                        'BBAN'              => $account->accountNumber,
-                    ],
-                ]
-            );
+            $return[] = self::fromArray([
+                'id'            => $account->id,
+                'name'          => $account->accountName,
+                'currency_code' => $account->balanceCurrency,
+                'iban'          => $iban,
+                'bban'          => $account->accountNumber,
+                'status'        => $account->status,
+                'extra'         => [
+                    'Bank name'         => $account->userInstitution?->companyName,
+                    'Balance'           => $account->balance,
+                    'Available balance' => $account->availableBalance,
+                    'Currency'          => $account->balanceCurrency,
+                    'IBAN'              => $iban,
+                    'BBAN'              => $account->accountNumber,
+                ],
+            ]);
         }
 
         return $return;
@@ -313,26 +293,20 @@ class ImportServiceAccount
 
         /** @var SpectreAccount $account */
         foreach ($spectre as $account) {
-            $iban     = (string)$account->iban;
+            $iban     = (string) $account->iban;
             if ('' !== $iban && false === IbanConverter::isValidIban($iban)) {
                 Log::debug(sprintf('IBAN "%s" is invalid so it will be ignored.', $iban));
                 $iban = '';
             }
-            $return[] = self::fromArray(
-                [
-                    'id'            => $account->id,
-                    'name'          => $account->name,
-                    'currency_code' => $account->currencyCode,
-                    'iban'          => $iban,
-                    'bban'          => $account->accountNumber,
-                    'status'        => $account->status,
-                    'extra'         => [
-                        'Currency' => $account->currencyCode,
-                        'IBAN'     => $iban,
-                        'BBAN'     => $account->accountNumber,
-                    ],
-                ]
-            );
+            $return[] = self::fromArray([
+                'id'            => $account->id,
+                'name'          => $account->name,
+                'currency_code' => $account->currencyCode,
+                'iban'          => $iban,
+                'bban'          => $account->accountNumber,
+                'status'        => $account->status,
+                'extra'         => ['Currency' => $account->currencyCode, 'IBAN'     => $iban, 'BBAN'     => $account->accountNumber],
+            ]);
         }
 
         return $return;
@@ -344,21 +318,15 @@ class ImportServiceAccount
 
         /** @var LunchFlowAccount $account */
         foreach ($lunchFlow as $account) {
-            $return[] = self::fromArray(
-                [
-                    'id'            => (string)$account->id,
-                    'name'          => $account->name,
-                    'currency_code' => (string)$account->currency,
-                    'iban'          => '',
-                    'bban'          => '',
-                    'status'        => $account->status,
-                    'extra'         => [
-                        'Currency' => (string)$account->currency,
-                        'IBAN'     => '',
-                        'BBAN'     => '',
-                    ],
-                ]
-            );
+            $return[] = self::fromArray([
+                'id'            => (string) $account->id,
+                'name'          => $account->name,
+                'currency_code' => (string) $account->currency,
+                'iban'          => '',
+                'bban'          => '',
+                'status'        => $account->status,
+                'extra'         => ['Currency' => (string) $account->currency, 'IBAN'     => '', 'BBAN'     => ''],
+            ]);
         }
 
         return $return;

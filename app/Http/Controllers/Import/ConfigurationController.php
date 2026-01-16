@@ -69,7 +69,6 @@ class ConfigurationController extends Controller
 
         // if the job is "contains_content", redirect to a step that will fix this, and show the user an intermediate page.
         if (!$doParse && 'contains_content' === $importJob->getState()) {
-
             // extra check for Sophtron, if it has no institutions or accounts.
             if ('sophtron' === $flow && 0 === count($importJob->getServiceAccounts())) {
                 return view('import.004-configure.sophtron-needs-institutions')->with(compact('mainTitle', 'subTitle', 'identifier'));
@@ -85,13 +84,13 @@ class ConfigurationController extends Controller
             if ($messages->count() > 0) {
                 // missing_requisitions
                 // if the job has no requisitions (Nordigen!) need to redirect to get some?
-                if ($messages->has('missing_requisitions') && 'true' === (string)$messages->get('missing_requisitions')[0]) {
+                if ($messages->has('missing_requisitions') && 'true' === (string) $messages->get('missing_requisitions')[0]) {
                     $importJob->setState('needs_connection_details');
                     $this->repository->saveToDisk($importJob);
 
                     return redirect()->route('select-bank.index', [$identifier]);
                 }
-                if ($messages->has('expired_agreement') && 'true' === (string)$messages->get('expired_agreement')[0]) {
+                if ($messages->has('expired_agreement') && 'true' === (string) $messages->get('expired_agreement')[0]) {
                     $importJob->setServiceAccounts([]);
                     $configuration = $importJob->getConfiguration();
                     $configuration->clearRequisitions();
@@ -101,9 +100,8 @@ class ConfigurationController extends Controller
                     $redirect      = route('select-bank.index', [$identifier]);
 
                     return view('import.004-configure.gocardless-expired')->with(compact('mainTitle', 'subTitle', 'redirect'));
-
                 }
-                
+
                 // if the agreement has expired, show error and exit gracefully.
                 // https://firefly-data.hades.internal/configure-import/2385f86b-0e50-4ba7-8b7c-e663471f2dd6?parse=true
 
@@ -134,7 +132,18 @@ class ConfigurationController extends Controller
         $accounts            = $this->mergeAccountLists($flow, $applicationAccounts, $serviceAccounts);
         $camtType            = $configuration->getCamtType();
 
-        return view('import.004-configure.index', compact('camtType', 'identifier', 'mainTitle', 'subTitle', 'applicationAccounts', 'configuration', 'flow', 'accounts', 'uniqueColumns', 'currencies'));
+        return view('import.004-configure.index', compact(
+            'camtType',
+            'identifier',
+            'mainTitle',
+            'subTitle',
+            'applicationAccounts',
+            'configuration',
+            'flow',
+            'accounts',
+            'uniqueColumns',
+            'currencies'
+        ));
     }
 
     private function mergeAccountLists(string $flow, array $applicationAccounts, array $serviceAccounts): array
@@ -146,7 +155,7 @@ class ConfigurationController extends Controller
             'lunchflow' => ImportServiceAccount::convertLunchflowArray($serviceAccounts),
             'sophtron'  => ImportServiceAccount::convertSophtronArray($serviceAccounts),
             'file'      => [],
-            default     => throw new ImporterErrorException(sprintf('Cannot mergeAccountLists("%s")', $flow)),
+            default     => throw new ImporterErrorException(sprintf('Cannot mergeAccountLists("%s")', $flow))
         };
 
         return $this->mergeGenericAccountList($generic, $applicationAccounts);
@@ -157,7 +166,7 @@ class ConfigurationController extends Controller
         Log::debug(sprintf('Method %s', __METHOD__));
 
         $dateObj           = new Date();
-        [$locale, $format] = $dateObj->splitLocaleFormat((string)$request->get('format'));
+        [$locale, $format] = $dateObj->splitLocaleFormat((string) $request->get('format'));
 
         /** @var Carbon $date */
         $date              = today()->locale($locale);

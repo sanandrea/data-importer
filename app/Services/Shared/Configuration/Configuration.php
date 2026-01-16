@@ -29,6 +29,7 @@ use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Support\Facades\Log;
 use UnexpectedValueException;
+use SensitiveParameter;
 
 /**
  * Class Configuration
@@ -36,23 +37,24 @@ use UnexpectedValueException;
 class Configuration
 {
     public const int VERSION        = 3;
+
     private array  $accounts        = [];
     private array  $newAccounts     = [];
     private bool   $addImportTag    = true;
     private string $connection      = '0';
     private string $contentType     = 'csv';
     private string $camtType        = '';
-    private bool   $conversion;
+    private bool $conversion;
     private string $customTag       = '';
     private string $date            = 'Y-m-d';
     private string $dateNotAfter;
     private string $dateNotBefore;
     private string $dateRange;
-    private int    $dateRangeNumber;
+    private int $dateRangeNumber;
     private string $dateRangeUnit;
 
     // same date range settings but for earlier transactions.
-    private int    $dateRangeNotAfterNumber;
+    private int $dateRangeNotAfterNumber;
     private string $dateRangeNotAfterUnit;
 
     private int $defaultAccount     = 1;
@@ -73,23 +75,23 @@ class Configuration
 
     // spectre configuration
     private string $identifier;
-    private bool   $ignoreDuplicateLines;
-    private bool   $ignoreDuplicateTransactions;
+    private bool $ignoreDuplicateLines;
+    private bool $ignoreDuplicateTransactions;
 
     // camt configuration
     private bool $ignoreSpectreCategories;
     private bool $mapAllData;
 
     // simplefin configuration
-    private bool   $pendingTransactions;
+    private bool $pendingTransactions;
     private string $accessToken;
 
     // date range settings
-    private array  $mapping         = [];
+    private array $mapping          = [];
     private string $nordigenBank;
     private string $nordigenCountry;
     private string $nordigenMaxDays;
-    private array  $nordigenRequisitions;
+    private array $nordigenRequisitions;
 
     private string $lunchFlowApiKey = '';
 
@@ -99,10 +101,10 @@ class Configuration
     private bool $rules             = true;
 
     // configuration for "classic" method:
-    private bool  $skipForm         = false;
+    private bool $skipForm          = false;
 
     // configuration for "cell" method:
-    private int    $uniqueColumnIndex;
+    private int $uniqueColumnIndex;
     private string $uniqueColumnType;
 
     // configuration for pseudo identifier (composite identifiers):
@@ -254,7 +256,6 @@ class Configuration
         // simplefin
         $object->pendingTransactions         = $data['pending_transactions'] ?? true;
 
-
         $object->ignoreDuplicateTransactions = $data['ignore_duplicate_transactions'] ?? true;
         Log::debug(sprintf('Configuration fromClassicFile: ignoreDuplicateTransactions = %s', var_export($object->ignoreDuplicateTransactions, true)));
 
@@ -304,7 +305,7 @@ class Configuration
         // loop do mapping from classic file.
         $doMapping                           = $data['column-do-mapping'] ?? [];
         foreach ($doMapping as $index => $map) {
-            $index                     = (int)$index;
+            $index                     = (int) $index;
             $object->doMapping[$index] = $map;
         }
         ksort($object->doMapping);
@@ -312,7 +313,7 @@ class Configuration
         // loop mapping from classic file.
         $mapping                             = $data['column-mapping-config'] ?? [];
         foreach ($mapping as $index => $map) {
-            $index                   = (int)$index;
+            $index                   = (int) $index;
             $object->mapping[$index] = $map;
         }
         ksort($object->mapping);
@@ -421,7 +422,10 @@ class Configuration
         // overrule a setting:
         if ('none' === $object->duplicateDetectionMethod) {
             $object->ignoreDuplicateTransactions = false;
-            Log::debug(sprintf('Configuration fromClassicFile overruled: ignoreDuplicateTransactions = %s', var_export($object->ignoreDuplicateTransactions, true)));
+            Log::debug(sprintf('Configuration fromClassicFile overruled: ignoreDuplicateTransactions = %s', var_export(
+                $object->ignoreDuplicateTransactions,
+                true
+            )));
         }
 
         // config for "cell":
@@ -822,7 +826,7 @@ class Configuration
         }
 
         // Otherwise return single index
-        return (string)$this->uniqueColumnIndex;
+        return (string) $this->uniqueColumnIndex;
     }
 
     /**
@@ -850,11 +854,7 @@ class Configuration
         // Create pseudo identifier from old single-column format
         Log::debug(sprintf('Migrating old identifier format to pseudo identifier: index=%d, type=%s', $this->uniqueColumnIndex, $this->uniqueColumnType));
 
-        $this->pseudoIdentifier = [
-            'source_columns' => [$this->uniqueColumnIndex],
-            'separator'      => '|',
-            'role'           => $this->uniqueColumnType,
-        ];
+        $this->pseudoIdentifier = ['source_columns' => [$this->uniqueColumnIndex], 'separator'      => '|', 'role'           => $this->uniqueColumnType];
     }
 
     public function getPendingTransactions(): bool
@@ -1030,7 +1030,11 @@ class Configuration
                     Log::debug(sprintf('dateNotAfter is now "%s"', $this->dateNotAfter));
                 }
                 if ('' !== $this->dateRangeNotAfterUnit && $this->dateRangeNotAfterNumber > 0) {
-                    Log::debug(sprintf('dateRangeNotAfterUnit is "%s", count is %d, dateNotAfter will be calculated.', $this->dateRangeNotAfterUnit, $this->dateRangeNotAfterNumber));
+                    Log::debug(sprintf(
+                        'dateRangeNotAfterUnit is "%s", count is %d, dateNotAfter will be calculated.',
+                        $this->dateRangeNotAfterUnit,
+                        $this->dateRangeNotAfterNumber
+                    ));
                     $this->dateNotAfter = self::calcDateNotBefore($this->dateRangeNotAfterUnit, $this->dateRangeNotAfterNumber);
                     Log::debug(sprintf('dateNotAfter is now "%s"', $this->dateNotAfter));
                 }
@@ -1040,7 +1044,7 @@ class Configuration
             case 'range':
                 Log::debug('Range is "range", both will be created from a string.');
                 $before                        = trim($this->dateNotBefore); // string
-                $after                         = trim($this->dateNotAfter);  // string
+                $after                         = trim($this->dateNotAfter); // string
                 if ('' !== $before) {
                     $before = Carbon::createFromFormat('Y-m-d', $before);
                 }
@@ -1061,19 +1065,18 @@ class Configuration
             $notBefore = Carbon::createFromFormat('Y-m-d', $this->dateNotBefore);
             $notAfter  = Carbon::createFromFormat('Y-m-d', $this->dateNotAfter);
             if ($notAfter->lt($notBefore)) {
-                throw new ImporterErrorException(sprintf('The date range in your configuration is invalid. The "not before" date (%s) is after the "not after" date (%s). You must correct this manually.', $this->dateNotBefore, $this->dateNotAfter));
+                throw new ImporterErrorException(sprintf(
+                    'The date range in your configuration is invalid. The "not before" date (%s) is after the "not after" date (%s). You must correct this manually.',
+                    $this->dateNotBefore,
+                    $this->dateNotAfter
+                ));
             }
         }
     }
 
     private static function calcDateNotBefore(string $unit, int $number): ?string
     {
-        $functions = [
-            'd' => 'subDays',
-            'w' => 'subWeeks',
-            'm' => 'subMonths',
-            'y' => 'subYears',
-        ];
+        $functions = ['d' => 'subDays', 'w' => 'subWeeks', 'm' => 'subMonths', 'y' => 'subYears'];
         if (isset($functions[$unit])) {
             $today    = Carbon::now();
             $function = $functions[$unit];
@@ -1091,7 +1094,7 @@ class Configuration
         return $this->accessToken;
     }
 
-    public function setAccessToken(#[\SensitiveParameter] string $accessToken): void
+    public function setAccessToken(#[SensitiveParameter] string $accessToken): void
     {
         $this->accessToken = $accessToken;
     }
@@ -1150,14 +1153,13 @@ class Configuration
             $request['date_not_after'] = $request['date_not_after']->format('Y-m-d');
         }
 
-        $this->dateNotBefore               = (string)$request['date_not_before'];
-        $this->dateNotAfter                = (string)$request['date_not_after'];
+        $this->dateNotBefore               = (string) $request['date_not_before'];
+        $this->dateNotAfter                = (string) $request['date_not_after'];
         $this->conversion                  = $request['conversion'];
         $this->groupedTransactionHandling  = $request['grouped_transaction_handling'];
         $this->useEntireOpposingAddress    = $request['use_entire_opposing_address'];
         $this->newAccounts                 = $request['to_create'];
         $this->accounts                    = $request['to_import_from'];
-
 
         // config for "cell":
         $this->uniqueColumnIndex           = $request['unique_column_index'] ?? 0;

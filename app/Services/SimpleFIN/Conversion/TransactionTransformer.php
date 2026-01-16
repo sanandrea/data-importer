@@ -91,7 +91,7 @@ class TransactionTransformer
 
         // Use 'posted' date as the primary transaction date.
         // SimpleFIN 'posted' is a UNIX timestamp.
-        $transactionTimestamp  = isset($transactionData['posted']) ? (int)$transactionData['posted'] : Carbon::now()->timestamp;
+        $transactionTimestamp  = isset($transactionData['posted']) ? (int) $transactionData['posted'] : Carbon::now()->timestamp;
         $transactionDateCarbon = Carbon::createFromTimestamp($transactionTimestamp);
 
         return [
@@ -148,13 +148,7 @@ class TransactionTransformer
         }
 
         // No mapping or mapped to 0 (deferred creation) - return null ID to trigger name-based account creation
-        return [
-            'id'     => null,
-            'name'   => $accountName,
-            'iban'   => null,
-            'number' => $accountKey,
-            'bic'    => null,
-        ];
+        return ['id'     => null, 'name'   => $accountName, 'iban'   => null, 'number' => $accountKey, 'bic'    => null];
     }
 
     /**
@@ -170,13 +164,7 @@ class TransactionTransformer
         // Try to find existing expense or revenue account first
         $existingAccount    = $this->findExistingAccount($description, $isDeposit);
         if (null !== $existingAccount && [] !== $existingAccount) {
-            return [
-                'id'     => $existingAccount['id'],
-                'name'   => $existingAccount['name'],
-                'iban'   => null,
-                'number' => null,
-                'bic'    => null,
-            ];
+            return ['id'     => $existingAccount['id'], 'name'   => $existingAccount['name'], 'iban'   => null, 'number' => null, 'bic'    => null];
         }
 
         // For clean instances: try clustering when no existing accounts found
@@ -188,13 +176,7 @@ class TransactionTransformer
             if (0 === count($accountsToCheck)) {
                 $clusteredAccountName = $this->findClusteredAccountName($description, $isDeposit);
                 if (null !== $clusteredAccountName && '' !== $clusteredAccountName && '0' !== $clusteredAccountName) {
-                    return [
-                        'id'     => null,
-                        'name'   => $clusteredAccountName,
-                        'iban'   => null,
-                        'number' => null,
-                        'bic'    => null,
-                    ];
+                    return ['id'     => null, 'name'   => $clusteredAccountName, 'iban'   => null, 'number' => null, 'bic'    => null];
                 }
             }
         }
@@ -203,31 +185,14 @@ class TransactionTransformer
 
         // Check if automatic account creation is enabled
         if (!config('simplefin.auto_create_expense_accounts', true)) {
-            Log::warning(sprintf(
-                'Auto-creation disabled. No %s account will be created for "%s"',
-                $isDeposit ? 'revenue' : 'expense',
-                $description
-            ));
+            Log::warning(sprintf('Auto-creation disabled. No %s account will be created for "%s"', $isDeposit ? 'revenue' : 'expense', $description));
 
-            return [
-                'id'     => null,
-                'name'   => $counterAccountName,
-                'iban'   => null,
-                'number' => null,
-                'bic'    => null,
-            ];
+            return ['id'     => null, 'name'   => $counterAccountName, 'iban'   => null, 'number' => null, 'bic'    => null];
         }
-
 
         Log::info(sprintf('Creating new %s account "%s" for transaction "%s"', $isDeposit ? 'revenue' : 'expense', $counterAccountName, $description));
 
-        return [
-            'id'     => null,
-            'name'   => $counterAccountName,
-            'iban'   => null,
-            'number' => null,
-            'bic'    => null,
-        ];
+        return ['id'     => null, 'name'   => $counterAccountName, 'iban'   => null, 'number' => null, 'bic'    => null];
     }
 
     /**
@@ -247,10 +212,10 @@ class TransactionTransformer
         ];
 
         foreach ($patterns as $pattern) {
-            $cleaned = preg_replace($pattern, '', (string)$cleaned);
+            $cleaned = preg_replace($pattern, '', (string) $cleaned);
         }
 
-        $cleaned  = trim((string)$cleaned);
+        $cleaned  = trim((string) $cleaned);
 
         // If we end up with an empty string, use a generic name
         if ('' === $cleaned) {
@@ -277,11 +242,21 @@ class TransactionTransformer
         // If currency code is not 3 uppercase letters, SimpleFIN spec might imply it's "custom".
         // The previous code returned 'XXX' for custom.
         if (3 === strlen($currency)) {
-            Log::debug(sprintf('getCurrencyCode for account "%s" ("%s") will return "%s"', $simpleFINAccountData->getId(), $simpleFINAccountData->getName(), strtoupper($currency)));
+            Log::debug(sprintf(
+                'getCurrencyCode for account "%s" ("%s") will return "%s"',
+                $simpleFINAccountData->getId(),
+                $simpleFINAccountData->getName(),
+                strtoupper($currency)
+            ));
 
             return strtoupper($currency);
         }
-        Log::warning(sprintf('getCurrencyCode for account "%s" ("%s") found "%s", will return "XXX" instead.', $simpleFINAccountData->getId(), $simpleFINAccountData->getName(), $currency));
+        Log::warning(sprintf(
+            'getCurrencyCode for account "%s" ("%s") found "%s", will return "XXX" instead.',
+            $simpleFINAccountData->getId(),
+            $simpleFINAccountData->getName(),
+            $currency
+        ));
 
         return 'XXX'; // Default for non-standard or missing currency codes, matching previous behavior.
     }
@@ -300,8 +275,8 @@ class TransactionTransformer
         $categoryFields = ['category', 'Category', 'CATEGORY', 'merchant_category', 'transaction_category'];
 
         foreach ($categoryFields as $field) {
-            if (isset($extra[$field]) && '' !== (string)$extra[$field]) {
-                return (string)$extra[$field];
+            if (isset($extra[$field]) && '' !== (string) $extra[$field]) {
+                return (string) $extra[$field];
             }
         }
 
@@ -353,7 +328,7 @@ class TransactionTransformer
             $noteFields = ['memo', 'notes', 'reference', 'check_number'];
 
             foreach ($noteFields as $field) {
-                if (isset($extra[$field]) && '' !== (string)$extra[$field]) {
+                if (isset($extra[$field]) && '' !== (string) $extra[$field]) {
                     $notes[] = sprintf('- %s: %s', ucfirst($field), $extra[$field]);
                 }
             }
@@ -375,8 +350,8 @@ class TransactionTransformer
      */
     private function getBookDate(array $transactionData): ?string
     {
-        if (isset($transactionData['posted']) && (int)$transactionData['posted'] > 0) {
-            return Carbon::createFromTimestamp((int)$transactionData['posted'])->format('Y-m-d');
+        if (isset($transactionData['posted']) && (int) $transactionData['posted'] > 0) {
+            return Carbon::createFromTimestamp((int) $transactionData['posted'])->format('Y-m-d');
         }
 
         return null;
@@ -389,8 +364,8 @@ class TransactionTransformer
      */
     private function getProcessDate(array $transactionData): ?string
     {
-        if (isset($transactionData['transacted_at']) && (int)$transactionData['transacted_at'] > 0) {
-            return Carbon::createFromTimestamp((int)$transactionData['transacted_at'])->format('Y-m-d');
+        if (isset($transactionData['transacted_at']) && (int) $transactionData['transacted_at'] > 0) {
+            return Carbon::createFromTimestamp((int) $transactionData['transacted_at'])->format('Y-m-d');
         }
 
         return null;
@@ -435,11 +410,7 @@ class TransactionTransformer
             Log::debug('Collecting revenue accounts from Firefly III');
             $this->revenueAccounts   = $this->collectRevenueAccounts();
 
-            Log::debug(sprintf(
-                'Collected %d expense accounts and %d revenue accounts',
-                count($this->expenseAccounts),
-                count($this->revenueAccounts)
-            ));
+            Log::debug(sprintf('Collected %d expense accounts and %d revenue accounts', count($this->expenseAccounts), count($this->revenueAccounts)));
 
             $this->accountsCollected = true;
         } catch (Exception $e) {
@@ -509,14 +480,14 @@ class TransactionTransformer
         ];
 
         foreach ($patterns as $pattern) {
-            $normalized = preg_replace($pattern, '', (string)$normalized);
+            $normalized = preg_replace($pattern, '', (string) $normalized);
         }
 
         // Remove special characters and extra spaces
-        $normalized = preg_replace('/[^a-z0-9\s]/', '', (string)$normalized);
-        $normalized = preg_replace('/\s+/', ' ', (string)$normalized);
+        $normalized = preg_replace('/[^a-z0-9\s]/', '', (string) $normalized);
+        $normalized = preg_replace('/\s+/', ' ', (string) $normalized);
 
-        return trim((string)$normalized);
+        return trim((string) $normalized);
     }
 
     /**
@@ -541,10 +512,7 @@ class TransactionTransformer
 
             if ($similarity > $bestSimilarity && $similarity >= $threshold) {
                 $bestSimilarity = $similarity;
-                $bestMatch      = [
-                    'account'    => $account,
-                    'similarity' => $similarity,
-                ];
+                $bestMatch      = ['account'    => $account, 'similarity' => $similarity];
             }
         }
 
@@ -617,12 +585,7 @@ class TransactionTransformer
             $similarity = $this->calculateSimilarity($normalizedDescription, $cluster['normalized_name']);
 
             if ($similarity >= $threshold) {
-                Log::debug(sprintf(
-                    'Clustering "%s" with existing cluster "%s" (similarity: %.2f)',
-                    $description,
-                    $clusterName,
-                    $similarity
-                ));
+                Log::debug(sprintf('Clustering "%s" with existing cluster "%s" (similarity: %.2f)', $description, $clusterName, $similarity));
 
                 // Add to existing cluster
                 $this->pendingTransactionClusters[$clusterName]['descriptions'][] = $description;
@@ -657,17 +620,17 @@ class TransactionTransformer
 
         // Further normalize for cluster naming
         $clusterName = preg_replace('/\b(payment|deposit|transfer|debit|credit|from|to)\b/i', '', $cleaned);
-        $clusterName = preg_replace('/\s+/', ' ', trim((string)$clusterName));
+        $clusterName = preg_replace('/\s+/', ' ', trim((string) $clusterName));
 
         // Remove trailing numbers/references that could vary
-        $clusterName = preg_replace('/\s+\d+\s*$/', '', (string)$clusterName);
-        $clusterName = preg_replace('/\s+#\w+.*$/', '', (string)$clusterName);
+        $clusterName = preg_replace('/\s+\d+\s*$/', '', (string) $clusterName);
+        $clusterName = preg_replace('/\s+#\w+.*$/', '', (string) $clusterName);
 
         // Ensure minimum meaningful length
-        if (strlen((string)$clusterName) < 3) {
+        if (strlen((string) $clusterName) < 3) {
             $clusterName = $cleaned; // Fall back to basic cleaning
         }
 
-        return trim((string)$clusterName);
+        return trim((string) $clusterName);
     }
 }

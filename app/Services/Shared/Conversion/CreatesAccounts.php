@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 /*
  * CreatesAccounts.php
  * Copyright (c) 2025 james@firefly-iii.org
@@ -24,10 +25,10 @@ declare(strict_types=1);
 namespace App\Services\Shared\Conversion;
 
 use App\Exceptions\ImporterErrorException;
+use App\Services\Nordigen\Model\Account as NordigenAccount;
 use App\Services\Shared\Model\ImportServiceAccount;
 use Carbon\Carbon;
 use GrumpyDictator\FFIIIApiSupport\Model\Account;
-use App\Services\Nordigen\Model\Account as NordigenAccount;
 use Illuminate\Support\Facades\Log;
 
 trait CreatesAccounts
@@ -63,16 +64,15 @@ trait CreatesAccounts
         // here is a check to see if account to be created is part of the import process.
         // so, existing service accounts contains all the accounts present at the import service with all of their meta-data.
         $existingAccount = array_find($this->existingServiceAccounts, static function (array|object $entry) use ($importServiceId) {
-
             if (is_array($entry)) {
-                return (string)$entry['id'] === $importServiceId;
+                return (string) $entry['id'] === $importServiceId;
             }
             if ($entry instanceof NordigenAccount) {
                 return $entry->getIdentifier() === $importServiceId;
             }
             Log::debug(sprintf('Class of existing entry is %s', $entry::class));
 
-            return (string)$entry->id === $importServiceId;
+            return (string) $entry->id === $importServiceId;
         });
 
         $continue        = true;
@@ -82,7 +82,7 @@ trait CreatesAccounts
         }
 
         // Validate required fields for account creation
-        if (true === $continue && '' === (string)$newAccountData['name']) {
+        if (true === $continue && '' === (string) $newAccountData['name']) {
             Log::error(sprintf('Account name is required for creating account "%s"', $importServiceId));
             $continue = false;
         }
@@ -101,11 +101,11 @@ trait CreatesAccounts
             ];
 
             // Add opening balance if provided
-            if ('' !== (string)$newAccountData['opening_balance'] && is_numeric($newAccountData['opening_balance'])) {
+            if ('' !== (string) $newAccountData['opening_balance'] && is_numeric($newAccountData['opening_balance'])) {
                 $configuration['opening_balance']      = $newAccountData['opening_balance'];
                 $configuration['opening_balance_date'] = Carbon::now()->format('Y-m-d');
             }
-            Log::info('Creating new Firefly III account', ['existing_account_id' => $importServiceId, 'configuration' => $configuration]);
+            Log::info('Creating new Firefly III account', ['existing_account_id' => $importServiceId, 'configuration'       => $configuration]);
 
             // Create Account object and create Firefly III account
             $existingAccountObject       = ImportServiceAccount::convertSingleAccount($existingAccount);
@@ -127,7 +127,13 @@ trait CreatesAccounts
 
             throw new ImporterErrorException($message);
         }
-        Log::info('Successfully created or found new Firefly III account', ['account_id' => $importServiceId, 'firefly_account_id' => $createdAccount->id, 'account_name' => $createdAccount->name, 'account_type' => $configuration['type'], 'currency' => $configuration['currency']]);
+        Log::info('Successfully created or found new Firefly III account', [
+            'account_id'         => $importServiceId,
+            'firefly_account_id' => $createdAccount->id,
+            'account_name'       => $createdAccount->name,
+            'account_type'       => $configuration['type'],
+            'currency'           => $configuration['currency'],
+        ]);
 
         return $createdAccount;
     }

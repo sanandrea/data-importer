@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 /*
  * ValidationController.php
  * Copyright (c) 2025 james@firefly-iii.org
@@ -38,11 +39,11 @@ class ValidationController extends Controller
     {
         return match ($flow) {
             'nordigen', 'gocardless' => $this->validateGoCardless(),
-            'simplefin'              => $this->validateSimpleFIN(),
-            'lunchflow'              => $this->validateLunchFlow(),
-            'sophtron'               => $this->validateSophtron(),
-            'file'                   => response()->json(['result' => 'OK']),
-            default                  => response()->json(['result' => 'NOK', 'message' => 'Unknown provider']),
+            'simplefin' => $this->validateSimpleFIN(),
+            'lunchflow' => $this->validateLunchFlow(),
+            'sophtron'  => $this->validateSophtron(),
+            'file'      => response()->json(['result' => 'OK']),
+            default     => response()->json(['result'  => 'NOK', 'message' => 'Unknown provider'])
         };
     }
 

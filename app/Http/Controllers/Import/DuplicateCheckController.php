@@ -57,38 +57,22 @@ class DuplicateCheckController extends Controller
     {
         $importJob           = $this->repository->find($identifier);
         $applicationAccounts = $importJob->getApplicationAccounts();
-        $name                = trim((string)$request->input('name', ''));
-        $type                = trim((string)$request->input('type', ''));
+        $name                = trim((string) $request->input('name', ''));
+        $type                = trim((string) $request->input('type', ''));
 
         if ('' === $name || '' === $type) {
             Log::debug('DUPLICATE_CHECK: Empty name or type, returning no duplicate');
 
-            return response()->json(
-                [
-                    'isDuplicate' => false,
-                    'message'     => null,
-                ]
-            );
+            return response()->json(['isDuplicate' => false, 'message'     => null]);
         }
         // Validate account type
         $validTypes          = ['asset', 'liability'];
         if (!in_array($type, $validTypes, true)) {
-            Log::warning('DUPLICATE_CHECK: Invalid account type provided', [
-                'type'        => $type,
-                'valid_types' => $validTypes,
-            ]);
+            Log::warning('DUPLICATE_CHECK: Invalid account type provided', ['type'        => $type, 'valid_types' => $validTypes]);
 
-            return response()->json(
-                [
-                    'isDuplicate' => false,
-                    'message'     => null,
-                ]
-            );
+            return response()->json(['isDuplicate' => false, 'message'     => null]);
         }
-        $arrayToCheck        = [
-            'asset'     => Constants::ASSET_ACCOUNTS,
-            'liability' => Constants::LIABILITIES,
-        ];
+        $arrayToCheck        = ['asset'     => Constants::ASSET_ACCOUNTS, 'liability' => Constants::LIABILITIES];
         $array               = $applicationAccounts[$arrayToCheck[$type]] ?? [];
         $isDuplicate         = false;
 
@@ -110,12 +94,6 @@ class DuplicateCheckController extends Controller
             'message'     => $message,
         ]);
 
-        return response()->json(
-            [
-                'isDuplicate' => $isDuplicate,
-                'message'     => $message,
-            ]
-        );
-
+        return response()->json(['isDuplicate' => $isDuplicate, 'message'     => $message]);
     }
 }

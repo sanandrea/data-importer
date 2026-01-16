@@ -36,6 +36,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Throwable;
+use SensitiveParameter;
 
 class ProcessImportSubmissionJob implements ShouldQueue
 {
@@ -58,8 +59,13 @@ class ProcessImportSubmissionJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(private ImportJob $importJob, #[\SensitiveParameter] private string $accessToken, private string $baseUrl, private ?string $vanityUrl)
-    {
+    public function __construct(
+        private ImportJob $importJob,
+        #[SensitiveParameter]
+        private string $accessToken,
+        private string $baseUrl,
+        private ?string $vanityUrl
+    ) {
         $this->importJob->refreshInstanceIdentifier();
         $this->repository = new ImportJobRepository();
         $this->repository->saveToDisk($this->importJob);
@@ -126,10 +132,7 @@ class ProcessImportSubmissionJob implements ShouldQueue
      */
     public function failed(Throwable $exception): void
     {
-        Log::error('ProcessImportSubmissionJob marked as failed', [
-            'identifier' => $this->importJob->identifier,
-            'exception'  => $exception->getMessage(),
-        ]);
+        Log::error('ProcessImportSubmissionJob marked as failed', ['identifier' => $this->importJob->identifier, 'exception'  => $exception->getMessage()]);
 
         // Ensure error status is set even if job fails catastrophically
         $this->importJob->submissionStatus->setStatus(SubmissionStatus::SUBMISSION_ERRORED);

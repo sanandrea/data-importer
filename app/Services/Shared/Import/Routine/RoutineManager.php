@@ -33,11 +33,12 @@ use Illuminate\Support\Facades\Log;
  */
 class RoutineManager
 {
-    private ApiSubmitter  $apiSubmitter;
+    private ApiSubmitter $apiSubmitter;
     private InfoCollector $infoCollector;
 
-    public function __construct(private ImportJob $importJob)
-    {
+    public function __construct(
+        private ImportJob $importJob
+    ) {
         $importJob->refreshInstanceIdentifier();
     }
 
@@ -71,6 +72,11 @@ class RoutineManager
         $this->apiSubmitter->setAccountInfo($accountInfo);
         $this->apiSubmitter->processTransactions();
         $this->importJob = $this->apiSubmitter->getImportJob();
-        Log::debug(sprintf('Routine manager: messages: %d, warnings: %d, errors: %d', count($this->importJob->submissionStatus->messages), count($this->importJob->submissionStatus->warnings), count($this->importJob->submissionStatus->errors)));
+        Log::debug(sprintf(
+            'Routine manager: messages: %d, warnings: %d, errors: %d',
+            count($this->importJob->submissionStatus->messages),
+            count($this->importJob->submissionStatus->warnings),
+            count($this->importJob->submissionStatus->errors)
+        ));
     }
 }
