@@ -270,7 +270,7 @@ class TransactionTransformer
      */
     private function getCurrencyCode(Account $simpleFINAccountData): string
     {
-        $currency = $simpleFINAccountData->getCurrency() ?? 'EUR'; // Default to EUR if not present
+        $currency = '' === $simpleFINAccountData->getCurrency() ? 'EUR' : $simpleFINAccountData->getCurrency(); // Default to EUR if not present
 
         // Replicate basic logic from SimpleFINAccount::isCustomCurrency() if it checked for 'XXX' or non-standard codes.
         // For now, pass through, or use a simple check. Let Firefly III handle currency validation.
