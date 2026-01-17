@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace App\Services\Camt\Conversion;
 
 use App\Exceptions\ImporterErrorException;
+use App\Models\ImportJob;
 use App\Services\CSV\Mapper\GetAccounts;
 use App\Services\Shared\Configuration\Configuration;
 use Carbon\Carbon;
@@ -40,12 +41,13 @@ class TransactionMapper
     private array $accountIdentificationSuffixes;
     private array $allAccounts;
 
+    private ImportJob $importJob;
+
     /**
      * @throws ImporterErrorException
      */
-    public function __construct(
-        private Configuration $configuration
-    ) {
+    public function __construct(private Configuration $configuration) {
+        bcscale(12);
         Log::debug('Constructed TransactionMapper.');
         $this->allAccounts                   = $this->getAllAccounts();
         $this->accountIdentificationSuffixes = ['id', 'iban', 'number', 'name'];
@@ -88,17 +90,14 @@ class TransactionMapper
                 continue;
             }
             $rawJournal               = $this->mapTransactionJournal($groupHandling, $split);
-            $polishedJournal          = null;
-            if (null !== $rawJournal) {
-                $polishedJournal = $this->sanityCheck($rawJournal);
+            $polishedJournal = $this->sanityCheck($rawJournal);
+
+            if (null !== $polishedJournal) {
+                $result['transactions'][] = $polishedJournal;
             }
-            if (null === $polishedJournal) {
-                // give warning, skip transaction.
-            }
-            // FIXME loop over $current and clean up if necessary.
-            $result['transactions'][] = $polishedJournal;
+
         }
-        Log::debug('Firefly III transaction is', $result);
+        Log::debug('Firefly III transaction is: ', $result);
 
         return $result;
     }
@@ -330,18 +329,23 @@ class TransactionMapper
         Log::debug('Start of sanityCheck');
         // no amount?
         if (!array_key_exists('amount', $current)) {
-            Log::error('Array has no amount information, cannot fix.');
-
+            Log::error('Array has no amount information, cannot fix.', $current);
+            $this->importJob->conversionStatus->addError(0,'Encountered transaction with no amount details. This transaction cannot be imported. Please see the logs for more details.');
             return null;
         }
         if ('' === $current['amount']) {
-            Log::error('Array has empty amount information, cannot fix.');
-
+            Log::error('Array has empty amount information, cannot fix.', $current);
+            $this->importJob->conversionStatus->addError(0,'Encountered transaction with amount "" (empty). This transaction cannot be imported. Please see the logs for more details.');
             return null;
         }
         if (null === $current['amount']) {
-            Log::error('Array has NULL amount information, cannot fix.');
-
+            Log::error('Array has NULL amount information, cannot fix.', $current);
+            $this->importJob->conversionStatus->addError(0,'Encountered transaction with amount NULL. This transaction cannot be imported. Please see the logs for more details.');
+            return null;
+        }
+        if(0 === bccomp('0', $current['amount'])) {
+            Log::error(sprintf('Array has "%s" as amount, cannot fix.', $current['amount']), $current);
+            $this->importJob->conversionStatus->addError(0,sprintf('Encountered transaction with amount "%s". This transaction cannot be imported. Please see the logs for more details.', $current['amount']));
             return null;
         }
 
@@ -372,7 +376,6 @@ class TransactionMapper
         // the type is a withdrawal, but we did not recognize the type of the source account.
         // if that did not succeed we did not FIND the source account, and must fall back
         // on the default account.
-        $overruleAccount                 = false;
         if ('withdrawal' === $current['type'] && '' === (string) $current['source_type']) {
             $current['source_id'] = $this->configuration->getDefaultAccount();
             unset($current['source_name'], $current['source_iban']);
@@ -380,7 +383,6 @@ class TransactionMapper
                 'Withdrawal, but did not recognize the type of the source account. It will be replaced with the default account (#%d).',
                 $current['source_id']
             ));
-            $overruleAccount      = true;
         }
         // same for deposit:
         if ('deposit' === $current['type'] && '' === (string) $current['destination_type']) {
@@ -390,7 +392,6 @@ class TransactionMapper
                 'Deposit, but did not recognize the destination account. It will be replaced with the default account (#%d).',
                 $current['destination_id']
             ));
-            $overruleAccount           = true;
         }
         // at this point it is possible that either of the two actions above have accidentally
         // set BOTH accounts to be the same one. For example, source_id = 1 and destination_iban = ABC
@@ -717,7 +718,7 @@ class TransactionMapper
     private function processAmount(string $groupHandling, array $data): string
     {
         // #8367 default amount = 0
-        $return = 0;
+        $return = '0';
         Log::debug(sprintf('Start with amount at zero ("%s")', $return));
         if ('group' === $groupHandling || 'split' === $groupHandling) {
             Log::debug(sprintf('Group handling is "%s"', $groupHandling));
@@ -759,10 +760,10 @@ class TransactionMapper
             }
         }
         if (0 === bccomp('0', (string) $return)) {
-            Log::debug('Amount is ZERO, set to NULL');
-            $return = null;
+            Log::debug('Amount is ZERO, set to "0"');
+            $return = '0';
         }
-        if (null !== $return && 0 !== bccomp('0', (string) $return) && !is_string($return)) {
+        if (0 !== bccomp('0', (string) $return) && !is_string($return)) {
             Log::debug(sprintf('Amount is %s, turn into string', var_export($return, true)));
             $return = (string) $return;
         }
@@ -789,4 +790,17 @@ class TransactionMapper
 
         return false;
     }
+
+    public function getImportJob(): ImportJob
+    {
+        return $this->importJob;
+    }
+
+    public function setImportJob(ImportJob $importJob): void
+    {
+        $importJob->refreshInstanceIdentifier();
+        $this->importJob = $importJob;
+    }
+
+
 }
