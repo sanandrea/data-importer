@@ -323,7 +323,7 @@ trait AutoImports
 
         $this->line('Done!');
 
-        // merge things:
+        // merge things, then report about it.
         $messages         = array_merge($importJob->conversionStatus->messages, $importJob->submissionStatus->messages);
         $warnings         = array_merge($importJob->conversionStatus->warnings, $importJob->submissionStatus->warnings);
         $errors           = array_merge($importJob->conversionStatus->errors, $importJob->submissionStatus->errors);
