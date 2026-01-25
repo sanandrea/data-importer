@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## v2.1.0 - 2026-02-01
+
+### Added
+- GitHub user @barreeeiroo built support for [Enable Banking](https://enablebanking.com/). Read more about it in the [documentation](https://docs.firefly-iii.org/tutorials/data-importer/eb/).
+
+### Changed
+- This release requires PHP 8.5
+
+### Deprecated
+- This release stops supporting PHP 8.4
+
+### Removed
+- This release stops supporting PHP 8.4
+
+### Fixed
+- Initial release.
+
+### Security
+- Initial release.
+
+
 ## v2.0.5 - 2026-01-17
 
 > [!WARNING]
