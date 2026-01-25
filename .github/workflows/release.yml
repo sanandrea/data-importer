@@ -124,6 +124,8 @@ jobs:
           npm install
           npm update
           npm run build --workspace=v2
+      - name: Setup Mago
+        uses: nhedger/setup-mago@v1
       - name: Code cleanup
         id: code-cleanup
         uses: JC5/firefly-iii-dev@main
@@ -137,6 +139,8 @@ jobs:
         run: |
           rm -rf vendor composer.lock
           composer update --no-dev --no-scripts --no-plugins -q
+          mago format || true
+          mago analyze --reporting-format=github || true
           sudo chown -R runner:docker resources/lang
           .ci/phpcs.sh || true
       - name: Calculate variables
