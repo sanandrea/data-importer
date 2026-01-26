@@ -71,6 +71,9 @@ class RoutineManager
         // submit transactions to API:
         $this->apiSubmitter->setAccountInfo($accountInfo);
         $this->apiSubmitter->processTransactions();
+        $this->apiSubmitter->finishBatch();
+
+
         $this->importJob = $this->apiSubmitter->getImportJob();
         Log::debug(sprintf(
             'Routine manager: messages: %d, warnings: %d, errors: %d',

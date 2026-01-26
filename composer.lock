@@ -577,12 +577,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/JC5/api-support-classes.git",
-                "reference": "d14288099ca42559b288e97e49b4e822d69c8906"
+                "reference": "b9625b10de32b05a81b51045c1291b2c295d8d61"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/JC5/api-support-classes/zipball/d14288099ca42559b288e97e49b4e822d69c8906",
-                "reference": "d14288099ca42559b288e97e49b4e822d69c8906",
+                "url": "https://api.github.com/repos/JC5/api-support-classes/zipball/b9625b10de32b05a81b51045c1291b2c295d8d61",
+                "reference": "b9625b10de32b05a81b51045c1291b2c295d8d61",
                 "shasum": ""
             },
             "require": {
@@ -676,7 +676,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2025-12-27T06:25:33+00:00"
+            "time": "2026-01-26T06:04:39+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -11062,5 +11062,8 @@
         "ext-json": "*"
     },
     "platform-dev": {},
+    "platform-overrides": {
+        "php": "8.4"
+    },
     "plugin-api-version": "2.9.0"
 }
