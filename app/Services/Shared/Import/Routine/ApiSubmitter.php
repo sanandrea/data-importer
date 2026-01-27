@@ -581,6 +581,7 @@ class ApiSubmitter
 
     public function finishBatch(): void
     {
+        Log::debug('Will now instruct Firefly III to finish the batch.');
         $url     = SecretManager::getBaseUrl();
         $token   = SecretManager::getAccessToken();
         $request = new PostFinishBatchRequest($url, $token, $this->configuration->isRules());
@@ -595,5 +596,6 @@ class ApiSubmitter
 
             return;
         }
+        Log::debug('Done instructing Firefly III to finish the batch.');
     }
 }
