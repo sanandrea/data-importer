@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Changed
+- [Issue 1127](https://github.com/firefly-iii/data-importer/issues/1127) CSV import now sums multiple amount columns (amount, amount_debit, amount_credit, amount_negated) instead of using priority-based selection. This allows importing bank statements with separate transaction amount and fee columns by mapping one column to `amount` and another to `amount_negated`.
+
 ## v2.0.5 - 2026-01-17
 
 > [!WARNING]
