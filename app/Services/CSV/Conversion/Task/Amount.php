@@ -43,41 +43,37 @@ class Amount extends AbstractTask
     private function processAmount(array $transaction): array
     {
         Log::debug(sprintf('Now at the start of processAmount("%s")', $transaction['amount']));
-        $amount                = null;
+
+        // Initialize amount to zero and track if we found any valid amount
+        $amount = '0';
+        $foundAnyAmount = false;
+
+        // Sum all amount fields that have valid values
         if ($this->validAmount((string)$transaction['amount'])) {
-            Log::debug('Transaction["amount"] value is not NULL, assume this is the correct value.');
-            $amount = $transaction['amount'];
+            Log::debug(sprintf('Adding amount: "%s"', $transaction['amount']));
+            $amount = bcadd($amount, (string)$transaction['amount']);
+            $foundAnyAmount = true;
         }
 
-        if (null === $amount && $this->validAmount((string)$transaction['amount_debit'])) {
-            Log::debug(
-                sprintf(
-                    'Transaction["amount_debit"] value is not NULL ("%s"), assume this is the correct value.',
-                    $transaction['amount_debit'],
-                ),
-            );
-            $amount = $transaction['amount_debit'];
+        if ($this->validAmount((string)$transaction['amount_debit'])) {
+            Log::debug(sprintf('Adding amount_debit: "%s"', $transaction['amount_debit']));
+            $amount = bcadd($amount, (string)$transaction['amount_debit']);
+            $foundAnyAmount = true;
         }
 
-        if (null === $amount && $this->validAmount((string)$transaction['amount_credit'])) {
-            Log::debug(
-                sprintf(
-                    'Transaction["amount_credit"] value is not NULL ("%s"), assume this is the correct value.',
-                    $transaction['amount_credit'],
-                ),
-            );
-            $amount = $transaction['amount_credit'];
+        if ($this->validAmount((string)$transaction['amount_credit'])) {
+            Log::debug(sprintf('Adding amount_credit: "%s"', $transaction['amount_credit']));
+            $amount = bcadd($amount, (string)$transaction['amount_credit']);
+            $foundAnyAmount = true;
         }
 
-        if (null === $amount && $this->validAmount((string)$transaction['amount_negated'])) {
-            Log::debug(
-                sprintf(
-                    'Transaction["amount_negated"] value is not NULL ("%s"), assume this is the correct value.',
-                    $transaction['amount_negated'],
-                ),
-            );
-            $amount = $transaction['amount_negated'];
+        if ($this->validAmount((string)$transaction['amount_negated'])) {
+            Log::debug(sprintf('Adding amount_negated: "%s"', $transaction['amount_negated']));
+            $amount = bcadd($amount, (string)$transaction['amount_negated']);
+            $foundAnyAmount = true;
         }
+
+        Log::debug(sprintf('Total amount after summing all fields: "%s"', $amount));
 
         if (!array_key_exists('amount_modifier', $transaction)) {
             Log::debug('Missing default amount modifier: amount modifier is now "1".');
@@ -87,8 +83,10 @@ class Amount extends AbstractTask
             $transaction['foreign_amount'] = (string)$transaction['foreign_amount'];
         }
         $amount                = (string)$amount;
-        if ('' === $amount) {
-            Log::error('Amount is EMPTY. This will give problems further ahead.', $transaction);
+
+        // Check if we found any amount at all
+        if (!$foundAnyAmount || '' === $amount || '0' === $amount) {
+            Log::error('No valid amount found or amount is zero. This will give problems further ahead.', $transaction);
             unset($transaction['amount_modifier']);
 
             return $transaction;
@@ -96,7 +94,7 @@ class Amount extends AbstractTask
         // modify amount:
         $amount                = bcmul($amount, (string) $transaction['amount_modifier']);
 
-        Log::debug(sprintf('Amount is now %s.', $amount));
+        Log::debug(sprintf('Amount after modifier is now %s.', $amount));
 
         // modify foreign amount
         if (array_key_exists('foreign_amount', $transaction)) {
