@@ -1,4 +1,4 @@
-FROM fireflyiii/base:latest-cli
+FROM fireflyiii/base:latest
 
 ARG VERSION
 ARG BUILD_DATE
@@ -20,7 +20,7 @@ LABEL org.opencontainers.image.description="Firefly III Data Importer - data imp
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.base.name="fireflyiii/base:latest-cli"
+LABEL org.opencontainers.image.base.name="fireflyiii/base:latest"
 
 # Copy entrypoint and build metadata
 COPY entrypoint-web.sh /usr/local/bin/entrypoint.sh
