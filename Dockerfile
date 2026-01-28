@@ -40,5 +40,3 @@ RUN unzip -q /var/www/download.zip -d $FIREFLY_III_PATH && \
     rm /var/www/download.zip
 
 WORKDIR $FIREFLY_III_PATH
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
